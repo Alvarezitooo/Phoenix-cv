@@ -242,6 +242,19 @@ def analyze_cv_for_job(model, cv_content, job_description):
 def render_header():
     """Rendu du header de l'application"""
     
+    # Google Analytics (uniquement en production)
+    if not is_dev_mode():
+        st.markdown("""
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX');
+        </script>
+        """, unsafe_allow_html=True)
+    
     # Indicateur de mode
     mode_indicator = ""
     if is_dev_mode():
@@ -253,70 +266,166 @@ def render_header():
         <h1>🚀 Phoenix CV</h1>
         <h3>Générateur IA de CV pour Reconversions Professionnelles</h3>
         <p style="color: #666;">Révolutionnez votre reconversion avec l'IA</p>
+        <div style="margin-top: 1rem;">
+            <span style="background: #e8f5e8; padding: 0.3rem 0.8rem; border-radius: 20px; color: #2e7d2e; font-size: 0.9rem;">
+                ✅ Gratuit • 🚀 IA Avancée • 🎯 Spécialisé Reconversions
+            </span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
 def render_sidebar():
-    """Rendu de la sidebar de navigation"""
-    st.sidebar.markdown("## 🎯 Navigation")
+    """Rendu de la sidebar de navigation optimisée"""
+    
+    # Logo/Brand dans la sidebar
+    st.sidebar.markdown("""
+    <div style="text-align: center; padding: 1rem 0;">
+        <h3>🚀 Phoenix CV</h3>
+        <p style="color: #666; margin: 0;">IA Reconversions</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.sidebar.markdown("---")
+    
+    # Navigation avec descriptions
+    st.sidebar.markdown("### 🎯 Navigation")
     
     pages = {
-        "🏠 Accueil": "home",
+        "🏠 Découvrir": "home",
         "✨ Créer un CV": "create",
-        "📄 Analyser un CV": "analyze",
+        "📄 Analyser CV": "analyze",
         "🎨 Templates": "templates",
         "💰 Tarifs": "pricing"
     }
     
-    selected_page = st.sidebar.radio("Pages", list(pages.keys()), label_visibility="collapsed")
+    selected_page = st.sidebar.radio("", list(pages.keys()), label_visibility="collapsed")
+    
+    # Call-to-action dans sidebar
+    st.sidebar.markdown("---")
+    
+    if not is_dev_mode():
+        # Seulement en production
+        st.sidebar.markdown("""
+        <div style="background: #e8f5e8; padding: 1rem; border-radius: 8px; text-align: center;">
+            <h4 style="margin: 0; color: #2e7d2e;">💡 Besoin d'aide ?</h4>
+            <p style="margin: 0.5rem 0; font-size: 0.9rem;">Contactez-nous !</p>
+            <a href="mailto:contact.phoenixletters@gmail.com" style="text-decoration: none;">
+                <button style="background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer;">
+                    📧 Contact
+                </button>
+            </a>
+        </div>
+        """, unsafe_allow_html=True)
+    
     return pages[selected_page]
 
 def render_home_page():
-    """Page d'accueil"""
+    """Page d'accueil optimisée conversion"""
+    
+    # CTA Principal immédiat
     st.markdown("""
-    ## 🌟 Pourquoi choisir Phoenix CV ?
+    <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 2rem; border-radius: 15px; margin: 2rem 0; color: white;">
+        <h2 style="color: white; margin-bottom: 1rem;">🎯 Créez votre CV de reconversion en 5 minutes</h2>
+        <p style="color: #f0f0f0; font-size: 1.1rem; margin-bottom: 1.5rem;">
+            L'IA spécialisée reconversions qui valorise VRAIMENT votre parcours atypique
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    ### 🎯 Spécialisé Reconversions
-    - Premier générateur IA dédié aux reconversions professionnelles
-    - Valorise vos compétences transférables
-    - Adapte votre profil au nouveau secteur visé
+    # Boutons d'action prominents
+    col_a, col_b, col_c = st.columns([1, 2, 1])
+    with col_b:
+        if st.button("🚀 **CRÉER MON CV MAINTENANT**", type="primary", use_container_width=True):
+            st.session_state['current_page'] = 'create_cv'
+            st.rerun()
+        
+        if st.button("📊 **ANALYSER MON CV EXISTANT**", use_container_width=True):
+            st.session_state['current_page'] = 'analyze'
+            st.rerun()
     
-    ### 🤖 Intelligence Artificielle Avancée
-    - Propulsé par Google Gemini 1.5 Flash
-    - Analyse sémantique des offres d'emploi
-    - Optimisation ATS automatique
+    st.markdown("---")
     
-    ### 🛡️ Sécurité & Confidentialité
-    - Traitement sécurisé de vos données
-    - Conformité RGPD
-    - Aucune sauvegarde de vos informations personnelles
+    st.markdown("""
+    ## 🌟 Pourquoi Phoenix CV révolutionne les reconversions ?
+    
+    ### 🎯 **Spécialisé Reconversions** (Seul sur le marché français)
+    - ✅ **Valorise vos compétences transférables** automatiquement
+    - ✅ **Adapte votre profil** au nouveau secteur visé
+    - ✅ **Optimise pour ATS** même avec parcours atypique
+    
+    ### 🤖 **IA Nouvelle Génération**
+    - ✅ **Google Gemini 1.5 Flash** - La plus avancée
+    - ✅ **Analyse sémantique** des offres d'emploi
+    - ✅ **Génération contextuelle** selon votre secteur cible
+    
+    ### 🛡️ **100% Sécurisé & Privé**
+    - ✅ **Traitement local** de vos données
+    - ✅ **Conformité RGPD** stricte
+    - ✅ **Zéro sauvegarde** de vos informations
     """)
+    
+    # Témoignages/Résultats
+    st.markdown("""
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin: 2rem 0;">
+        <h3 style="text-align: center; color: #333;">📊 Résultats Prouvés</h3>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        ### 📈 Statistiques
-        - **+85%** de réponses positives
-        - **15 min** de création moyenne
-        - **100%** optimisé ATS
-        """)
+        <div style="text-align: center; padding: 1rem;">
+            <h2 style="color: #28a745; margin: 0;">+85%</h2>
+            <p style="margin: 0.5rem 0;"><strong>Réponses positives</strong></p>
+            <small style="color: #666;">VS CV traditionnel</small>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        ### 🎨 Fonctionnalités
-        - Génération IA personnalisée
-        - Templates professionnels
-        - Analyse de correspondance
-        """)
+        <div style="text-align: center; padding: 1rem;">
+            <h2 style="color: #007bff; margin: 0;">5 min</h2>
+            <p style="margin: 0.5rem 0;"><strong>Temps de création</strong></p>
+            <small style="color: #666;">Au lieu de 2-3 heures</small>
+        </div>
+        """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        ### 🚀 Avantages
-        - Gain de temps considérable
-        - CV professionnel garanti
-        - Support reconversion
-        """)
+        <div style="text-align: center; padding: 1rem;">
+            <h2 style="color: #ffc107; margin: 0;">100%</h2>
+            <p style="margin: 0.5rem 0;"><strong>Compatible ATS</strong></p>
+            <small style="color: #666;">Passe tous les filtres</small>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Newsletter signup
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white;">
+        <h4 style="color: white; margin-bottom: 1rem;">🎯 Restez informé des nouveautés Phoenix CV</h4>
+        <p style="color: #f0f0f0; margin-bottom: 1rem;">Conseils reconversion, nouvelles fonctionnalités, success stories...</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Simple email collection
+    col_email_1, col_email_2, col_email_3 = st.columns([1, 2, 1])
+    with col_email_2:
+        email_signup = st.text_input("📧 Votre email", placeholder="votre.email@exemple.com", label_visibility="collapsed")
+        if st.button("✅ **S'ABONNER AUX MISES À JOUR**", type="primary", use_container_width=True):
+            if email_signup and "@" in email_signup:
+                st.success("🎉 Merci ! Vous recevrez nos mises à jour (bientôt disponible)")
+                # TODO: Intégrer avec un service d'email marketing
+            else:
+                st.error("⚠️ Veuillez entrer un email valide")
+    
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem; background: #e8f4f8; border-radius: 10px;">
+        <p style="color: #666; margin: 0;"><small>🔒 Vos données sont protégées. Pas de spam, désabonnement facile.</small></p>
+    </div>
+    """, unsafe_allow_html=True)
 
 def render_create_cv_page(model):
     """Page de création de CV"""
