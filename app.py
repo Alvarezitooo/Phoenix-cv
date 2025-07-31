@@ -29,13 +29,63 @@ def load_env_file():
 load_env_file()
 
 def configure_page():
-    """Configuration de la page Streamlit"""
+    """Configuration de la page Streamlit optimisée mobile"""
     st.set_page_config(
         page_title="Phoenix CV - Générateur IA de CV",
         page_icon="🚀",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="auto"  # Auto-collapse sur mobile
     )
+    
+    # CSS mobile-first
+    st.markdown("""
+    <style>
+    /* Mobile-first responsive design */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-top: 1rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            max-width: 100%;
+        }
+        
+        /* Sidebar auto-hide sur mobile */
+        .css-1d391kg {
+            padding-top: 1rem;
+        }
+        
+        /* Boutons plus gros pour touch */
+        .stButton > button {
+            height: 3rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        /* Text inputs plus hauts */
+        .stTextInput > div > div > input {
+            height: 3rem;
+            font-size: 1rem;
+        }
+        
+        /* Textarea plus accessible */
+        .stTextArea > div > div > textarea {
+            font-size: 1rem;
+            min-height: 120px;
+        }
+    }
+    
+    /* Amélioration générale */
+    .stButton > button {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 def is_dev_mode():
     """Vérifie si l'application est en mode développement"""
@@ -262,14 +312,19 @@ def render_header():
     
     st.markdown(f"""
     {mode_indicator}
-    <div style="text-align: center; padding: 2rem 0;">
-        <h1>🚀 Phoenix CV</h1>
-        <h3>Générateur IA de CV pour Reconversions Professionnelles</h3>
-        <p style="color: #666;">Révolutionnez votre reconversion avec l'IA</p>
+    <div style="text-align: center; padding: 1.5rem 0;">
+        <h1 style="margin-bottom: 0.5rem; font-size: clamp(1.8rem, 4vw, 2.5rem);">🚀 Phoenix CV</h1>
+        <h3 style="margin-bottom: 0.5rem; font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 600;">
+            Générateur IA de CV pour Reconversions
+        </h3>
+        <p style="color: #666; margin-bottom: 1rem; font-size: clamp(0.9rem, 2.5vw, 1rem);">
+            Révolutionnez votre reconversion avec l'IA
+        </p>
         <div style="margin-top: 1rem;">
-            <span style="background: #e8f5e8; padding: 0.3rem 0.8rem; border-radius: 20px; color: #2e7d2e; font-size: 0.9rem;">
+            <div style="background: #e8f5e8; padding: 0.5rem 1rem; border-radius: 25px; color: #2e7d2e; 
+                        font-size: clamp(0.8rem, 2vw, 0.9rem); display: inline-block; max-width: 90%;">
                 ✅ Gratuit • 🚀 IA Avancée • 🎯 Spécialisé Reconversions
-            </span>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -322,25 +377,31 @@ def render_sidebar():
 def render_home_page():
     """Page d'accueil optimisée conversion"""
     
-    # CTA Principal immédiat
+    # CTA Principal mobile-optimized
     st.markdown("""
     <div style="text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                padding: 2rem; border-radius: 15px; margin: 2rem 0; color: white;">
-        <h2 style="color: white; margin-bottom: 1rem;">🎯 Créez votre CV de reconversion en 5 minutes</h2>
-        <p style="color: #f0f0f0; font-size: 1.1rem; margin-bottom: 1.5rem;">
+                padding: clamp(1.5rem, 4vw, 2rem); border-radius: 15px; margin: 1rem 0; color: white;">
+        <h2 style="color: white; margin-bottom: 1rem; font-size: clamp(1.3rem, 4vw, 1.8rem); line-height: 1.3;">
+            🎯 Créez votre CV de reconversion en 5 minutes
+        </h2>
+        <p style="color: #f0f0f0; font-size: clamp(0.95rem, 3vw, 1.1rem); margin-bottom: 1.5rem; line-height: 1.4;">
             L'IA spécialisée reconversions qui valorise VRAIMENT votre parcours atypique
         </p>
     </div>
     """, unsafe_allow_html=True)
     
-    # Boutons d'action prominents
-    col_a, col_b, col_c = st.columns([1, 2, 1])
-    with col_b:
-        if st.button("🚀 **CRÉER MON CV MAINTENANT**", type="primary", use_container_width=True):
-            st.session_state['current_page'] = 'create_cv'
+    # Boutons d'action mobile-first
+    # Sur mobile : pleine largeur, sur desktop : colonnes
+    is_mobile = st.sidebar.button("📱 Mode Mobile", help="Toggle mobile view", key="mobile_toggle") if 'mobile_view' not in st.session_state else st.session_state.get('mobile_view', False)
+    
+    if st.container():  # Toujours pleine largeur pour meilleure UX mobile
+        if st.button("🚀 **CRÉER MON CV MAINTENANT**", type="primary", use_container_width=True, key="main_cta"):
+            st.session_state['current_page'] = 'create'
             st.rerun()
         
-        if st.button("📊 **ANALYSER MON CV EXISTANT**", use_container_width=True):
+        st.markdown("<div style='margin: 0.5rem 0;'></div>", unsafe_allow_html=True)
+        
+        if st.button("📊 **ANALYSER MON CV EXISTANT**", use_container_width=True, key="analyze_cta"):
             st.session_state['current_page'] = 'analyze'
             st.rerun()
     
@@ -372,34 +433,30 @@ def render_home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
+    # Stats responsive : stack vertical sur mobile, horizontal sur desktop
+    st.markdown("""
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
     
-    with col1:
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem;">
-            <h2 style="color: #28a745; margin: 0;">+85%</h2>
-            <p style="margin: 0.5rem 0;"><strong>Réponses positives</strong></p>
-            <small style="color: #666;">VS CV traditionnel</small>
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #28a745; margin: 0; font-size: clamp(1.8rem, 5vw, 2.5rem);">+85%</h2>
+            <p style="margin: 0.5rem 0; font-weight: bold; font-size: clamp(0.9rem, 2.5vw, 1rem);">Réponses positives</p>
+            <small style="color: #666; font-size: clamp(0.8rem, 2vw, 0.9rem);">VS CV traditionnel</small>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem;">
-            <h2 style="color: #007bff; margin: 0;">5 min</h2>
-            <p style="margin: 0.5rem 0;"><strong>Temps de création</strong></p>
-            <small style="color: #666;">Au lieu de 2-3 heures</small>
+        
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #007bff; margin: 0; font-size: clamp(1.8rem, 5vw, 2.5rem);">5 min</h2>
+            <p style="margin: 0.5rem 0; font-weight: bold; font-size: clamp(0.9rem, 2.5vw, 1rem);">Temps de création</p>
+            <small style="color: #666; font-size: clamp(0.8rem, 2vw, 0.9rem);">Au lieu de 2-3 heures</small>
         </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("""
-        <div style="text-align: center; padding: 1rem;">
-            <h2 style="color: #ffc107; margin: 0;">100%</h2>
-            <p style="margin: 0.5rem 0;"><strong>Compatible ATS</strong></p>
-            <small style="color: #666;">Passe tous les filtres</small>
+        
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #ffc107; margin: 0; font-size: clamp(1.8rem, 5vw, 2.5rem);">100%</h2>
+            <p style="margin: 0.5rem 0; font-weight: bold; font-size: clamp(0.9rem, 2.5vw, 1rem);">Compatible ATS</p>
+            <small style="color: #666; font-size: clamp(0.8rem, 2vw, 0.9rem);">Passe tous les filtres</small>
         </div>
-        """, unsafe_allow_html=True)
+        
+    </div>
+    """, unsafe_allow_html=True)
     
     # Newsletter signup
     st.markdown("---")
@@ -410,11 +467,18 @@ def render_home_page():
     </div>
     """, unsafe_allow_html=True)
     
-    # Simple email collection
-    col_email_1, col_email_2, col_email_3 = st.columns([1, 2, 1])
-    with col_email_2:
-        email_signup = st.text_input("📧 Votre email", placeholder="votre.email@exemple.com", label_visibility="collapsed")
-        if st.button("✅ **S'ABONNER AUX MISES À JOUR**", type="primary", use_container_width=True):
+    # Email collection mobile-first
+    with st.container():
+        email_signup = st.text_input(
+            "📧 Votre email", 
+            placeholder="votre.email@exemple.com",
+            label_visibility="collapsed",
+            key="newsletter_email"
+        )
+        
+        st.markdown("<div style='margin: 0.5rem 0;'></div>", unsafe_allow_html=True)
+        
+        if st.button("✅ **S'ABONNER AUX MISES À JOUR**", type="primary", use_container_width=True, key="newsletter_btn"):
             if email_signup and "@" in email_signup:
                 st.success("🎉 Merci ! Vous recevrez nos mises à jour (bientôt disponible)")
                 # TODO: Intégrer avec un service d'email marketing
