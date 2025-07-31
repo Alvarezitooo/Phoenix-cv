@@ -13,6 +13,21 @@ import PyPDF2
 import docx
 from io import BytesIO
 
+# Chargement des variables d'environnement depuis .env
+def load_env_file():
+    """Charge les variables d'environnement depuis le fichier .env"""
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    os.environ[key.strip()] = value.strip()
+
+# Charger le fichier .env au démarrage
+load_env_file()
+
 def configure_page():
     """Configuration de la page Streamlit"""
     st.set_page_config(
@@ -141,7 +156,7 @@ def render_sidebar():
         "💰 Tarifs": "pricing"
     }
     
-    selected_page = st.sidebar.radio("", list(pages.keys()))
+    selected_page = st.sidebar.radio("Pages", list(pages.keys()), label_visibility="collapsed")
     return pages[selected_page]
 
 def render_home_page():
