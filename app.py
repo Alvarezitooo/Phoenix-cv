@@ -44,7 +44,7 @@ def is_dev_mode():
 def setup_gemini():
     """Configuration sécurisée de Gemini AI"""
     if is_dev_mode():
-        st.info("🧪 Mode DEV activé - Utilisation des réponses mock (pas de consommation API)")
+        st.warning("🎭 **MODE DÉMONSTRATION** - Les résultats générés sont des exemples pour présenter les fonctionnalités. En mode production, Phoenix CV utilise l'IA Gemini pour des résultats personnalisés et optimisés.")
         return None  # Pas besoin du modèle en mode dev
     
     api_key = os.environ.get('GEMINI_API_KEY') or st.secrets.get('GEMINI_API_KEY')
@@ -124,7 +124,7 @@ Professionnel en reconversion vers **{target_job}**, fort de mon expérience div
 - **Engagement** dans une démarche d'amélioration continue
 
 ---
-*CV généré en mode DEV - Phoenix CV*"""
+*⚠️ DÉMONSTRATION - Ce CV est généré avec des données d'exemple pour la présentation. Le vrai service utilise l'IA Gemini pour des résultats personnalisés et optimisés selon votre profil réel.*"""
 
 def get_mock_analysis(cv_content, job_description):
     """Génère une analyse mock pour le mode développement"""
@@ -164,7 +164,7 @@ def get_mock_analysis(cv_content, job_description):
 - Créez des **liens** entre votre expérience passée et le poste cible
 - Montrez votre **proactivité** dans l'apprentissage du nouveau domaine
 
-*Analyse générée en mode DEV - Phoenix CV*"""
+*⚠️ DÉMONSTRATION - Cette analyse est générée avec des données d'exemple pour la présentation. Le vrai service utilise l'IA Gemini pour des analyses personnalisées et précises selon votre CV et l'offre d'emploi réels.*"""
 
 def generate_cv_content(model, profile_data, target_job=""):
     """Génère le contenu du CV avec Gemini AI ou mock selon le mode"""
@@ -245,7 +245,7 @@ def render_header():
     # Indicateur de mode
     mode_indicator = ""
     if is_dev_mode():
-        mode_indicator = '<div style="background: #e8f4f8; padding: 0.5rem; border-radius: 5px; margin-bottom: 1rem;"><p style="margin: 0; color: #0066cc;"><strong>🧪 MODE DÉVELOPPEMENT</strong> - Réponses mock activées (économie API)</p></div>'
+        mode_indicator = '<div style="background: #fff3cd; padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem; border-left: 4px solid #ffc107;"><p style="margin: 0; color: #856404;"><strong>🎭 MODE DÉMONSTRATION</strong> - Résultats d\'exemple pour présentation. En production, Phoenix CV génère des contenus personnalisés avec l\'IA.</p></div>'
     
     st.markdown(f"""
     {mode_indicator}
