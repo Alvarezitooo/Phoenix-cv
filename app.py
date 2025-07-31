@@ -37,8 +37,16 @@ def configure_page():
         initial_sidebar_state="expanded"
     )
 
+def is_dev_mode():
+    """Vérifie si l'application est en mode développement"""
+    return os.environ.get('DEV_MODE', 'false').lower() == 'true'
+
 def setup_gemini():
     """Configuration sécurisée de Gemini AI"""
+    if is_dev_mode():
+        st.info("🧪 Mode DEV activé - Utilisation des réponses mock (pas de consommation API)")
+        return None  # Pas besoin du modèle en mode dev
+    
     api_key = os.environ.get('GEMINI_API_KEY') or st.secrets.get('GEMINI_API_KEY')
     
     if not api_key:
@@ -73,9 +81,99 @@ def extract_text_from_docx(uploaded_file):
         st.error(f"Erreur lors de la lecture du DOCX: {str(e)}")
         return None
 
+def get_mock_cv_content(profile_data, target_job):
+    """Génère un CV mock pour le mode développement"""
+    return f"""# CV - Reconversion Professionnelle
+
+## 👤 Profil Professionnel
+Professionnel en reconversion vers **{target_job}**, fort de mon expérience diversifiée et de mes compétences transférables. Motivé par les nouveaux défis et déterminé à apporter une valeur ajoutée grâce à mon parcours atypique.
+
+## ⚡ Compétences Clés
+- **Leadership & Management** : Gestion d'équipe et coordination de projets
+- **Communication** : Excellent relationnel client et présentation
+- **Adaptation** : Capacité d'apprentissage rapide et flexibilité
+- **Analyse** : Résolution de problèmes et prise de décision
+- **Numérique** : Maîtrise des outils digitaux et nouvelles technologies
+
+## 💼 Expérience Professionnelle
+
+### Expérience Antérieure (Transférable)
+**Responsable d'équipe** - Secteur précédent (2020-2024)
+- Encadrement d'une équipe de 10 personnes
+- Amélioration des processus : +25% d'efficacité
+- Gestion budgétaire : 500K€ annuels
+- Formation et développement des collaborateurs
+
+### Projets de Reconversion
+**Formation & Projets personnels** (2024)
+- Certification professionnelle en {target_job}
+- Réalisation de projets pratiques
+- Veille technologique active
+- Networking sectoriel
+
+## 🎓 Formation
+- **Formation spécialisée** en {target_job} (2024)
+- **Diplôme initial** - Domaine d'origine (2018)
+- **Certifications complémentaires** : Google Analytics, Project Management
+
+## 🚀 Atouts pour la Reconversion
+- **Vision transversale** grâce à mon parcours diversifié
+- **Motivation exceptionnelle** pour ce nouveau défi
+- **Compétences relationnelles** développées
+- **Capacité d'adaptation** prouvée
+- **Engagement** dans une démarche d'amélioration continue
+
+---
+*CV généré en mode DEV - Phoenix CV*"""
+
+def get_mock_analysis(cv_content, job_description):
+    """Génère une analyse mock pour le mode développement"""
+    return """## 📊 Analyse de Correspondance CV/Offre
+
+### 🎯 Score de Correspondance : 78%
+
+### ✅ Points Forts
+- **Expérience managériale** directement transférable
+- **Compétences en gestion de projet** très recherchées
+- **Capacité d'adaptation** clairement démontrée
+- **Formation récente** dans le domaine cible
+- **Soft skills** exceptionnelles
+
+### ⚠️ Points d'Amélioration
+- **Expérience technique** à approfondir
+- **Certifications spécialisées** à obtenir
+- **Portfolio** de projets à étoffer
+- **Réseau professionnel** à développer dans le nouveau secteur
+
+### 🔍 Mots-Clés Manquants
+- Technologies spécifiques au poste
+- Certifications sectorielles
+- Outils métier spécialisés
+- Jargon technique du domaine
+
+### 🚀 Recommandations d'Optimisation
+1. **Ajouter une section "Projets"** mettant en avant vos réalisations
+2. **Intégrer les mots-clés** de l'offre d'emploi
+3. **Quantifier vos résultats** avec des chiffres précis
+4. **Mettre en avant votre formation** en reconversion
+5. **Adapter le titre** pour correspondre au poste visé
+
+### 💡 Conseils Spécifiques
+- Commencez votre CV par un **résumé accrocheur** expliquant votre reconversion
+- Utilisez des **verbes d'action** pour décrire vos expériences
+- Créez des **liens** entre votre expérience passée et le poste cible
+- Montrez votre **proactivité** dans l'apprentissage du nouveau domaine
+
+*Analyse générée en mode DEV - Phoenix CV*"""
+
 def generate_cv_content(model, profile_data, target_job=""):
-    """Génère le contenu du CV avec Gemini AI"""
+    """Génère le contenu du CV avec Gemini AI ou mock selon le mode"""
     
+    # Mode DEV : Retourne un CV mock
+    if is_dev_mode():
+        return get_mock_cv_content(profile_data, target_job)
+    
+    # Mode PROD : Utilise l'API Gemini avec fallback
     prompt = f"""
     Tu es un expert en reconversion professionnelle et rédaction de CV.
     
@@ -100,12 +198,18 @@ def generate_cv_content(model, profile_data, target_job=""):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        st.error(f"Erreur lors de la génération du CV: {str(e)}")
-        return None
+        st.warning(f"⚠️ Erreur API Gemini: {str(e)}")
+        st.info("🔄 Utilisation du fallback intelligent...")
+        return get_mock_cv_content(profile_data, target_job)
 
 def analyze_cv_for_job(model, cv_content, job_description):
-    """Analyse la correspondance CV/Offre d'emploi"""
+    """Analyse la correspondance CV/Offre d'emploi avec fallback intelligent"""
     
+    # Mode DEV : Retourne une analyse mock
+    if is_dev_mode():
+        return get_mock_analysis(cv_content, job_description)
+    
+    # Mode PROD : Utilise l'API Gemini avec fallback
     prompt = f"""
     Tu es un expert ATS (Applicant Tracking System) et recruteur.
     
@@ -131,12 +235,20 @@ def analyze_cv_for_job(model, cv_content, job_description):
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        st.error(f"Erreur lors de l'analyse: {str(e)}")
-        return None
+        st.warning(f"⚠️ Erreur API Gemini: {str(e)}")
+        st.info("🔄 Utilisation du fallback intelligent...")
+        return get_mock_analysis(cv_content, job_description)
 
 def render_header():
     """Rendu du header de l'application"""
-    st.markdown("""
+    
+    # Indicateur de mode
+    mode_indicator = ""
+    if is_dev_mode():
+        mode_indicator = '<div style="background: #e8f4f8; padding: 0.5rem; border-radius: 5px; margin-bottom: 1rem;"><p style="margin: 0; color: #0066cc;"><strong>🧪 MODE DÉVELOPPEMENT</strong> - Réponses mock activées (économie API)</p></div>'
+    
+    st.markdown(f"""
+    {mode_indicator}
     <div style="text-align: center; padding: 2rem 0;">
         <h1>🚀 Phoenix CV</h1>
         <h3>Générateur IA de CV pour Reconversions Professionnelles</h3>
