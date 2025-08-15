@@ -1,5 +1,5 @@
 # 🚀 Phoenix CV - Générateur IA de CV pour Reconversions
-# Dependencies principales pour version marketing
+# Dependencies optimisées pour Cloud Run
 
 # Interface utilisateur
 streamlit>=1.28.0
@@ -11,5 +11,19 @@ google-generativeai>=0.3.0
 PyPDF2>=3.0.0
 python-docx>=0.8.11
 
-# Utilitaires
+# API et requêtes
+requests>=2.28.0
 python-multipart>=0.0.6
+
+# Authentification et sécurité
+PyJWT>=2.8.0
+cryptography>=41.0.0
+
+# Base de données
+supabase>=1.0.0
+
+# Configuration
+python-dotenv>=1.0.0
+
+# Utilitaires pour Cloud Run
+gunicorn>=20.1.0

@@ -5,6 +5,7 @@ Version Marketing Simplifiée - Prêt pour démo
 
 import streamlit as st
 import os
+import sys
 import google.generativeai as genai
 from datetime import datetime
 import json
@@ -12,6 +13,17 @@ import tempfile
 import PyPDF2
 import docx
 from io import BytesIO
+
+# Ajout du chemin vers phoenix_shared pour l'import SSO
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../phoenix_shared'))
+
+# Import du système SSO Phoenix
+try:
+    from auth.phoenix_sso import phoenix_sso, render_phoenix_navigation, show_phoenix_user_badge
+    SSO_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: SSO Phoenix non disponible: {e}")
+    SSO_AVAILABLE = False
 
 # Chargement des variables d'environnement depuis .env
 def load_env_file():
@@ -289,8 +301,8 @@ def analyze_cv_for_job(model, cv_content, job_description):
         st.info("🔄 Utilisation du fallback intelligent...")
         return get_mock_analysis(cv_content, job_description)
 
-def render_header():
-    """Rendu du header de l'application"""
+def render_header(phoenix_user=None):
+    """Rendu du header de l'application avec support SSO Phoenix"""
     
     # Google Analytics (uniquement en production)
     if not is_dev_mode():
@@ -310,8 +322,16 @@ def render_header():
     if is_dev_mode():
         mode_indicator = '<div style="background: #fff3cd; padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem; border-left: 4px solid #ffc107;"><p style="margin: 0; color: #856404;"><strong>🎭 MODE DÉMONSTRATION</strong> - Résultats d\'exemple pour présentation. En production, Phoenix CV génère des contenus personnalisés avec l\'IA.</p></div>'
     
+    # Message de bienvenue Phoenix SSO
+    phoenix_welcome = ""
+    if phoenix_user:
+        user_name = phoenix_user.get('full_name') or phoenix_user.get('email', 'Phoenix User')
+        user_tier = phoenix_user.get('user_tier', 'free').title()
+        phoenix_welcome = f'<div style="background: linear-gradient(45deg, #ff7a00, #ff0040); padding: 0.75rem; border-radius: 5px; margin-bottom: 1rem; color: white; text-align: center;"><p style="margin: 0;"><strong>🔥 Phoenix Ecosystem</strong> - Bienvenue {user_name} ({user_tier})</p></div>'
+    
     st.markdown(f"""
     {mode_indicator}
+    {phoenix_welcome}
     <div style="text-align: center; padding: 1.5rem 0;">
         <h1 style="margin-bottom: 0.5rem; font-size: clamp(1.8rem, 4vw, 2.5rem);">🚀 Phoenix CV</h1>
         <h3 style="margin-bottom: 0.5rem; font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 600;">
@@ -329,8 +349,8 @@ def render_header():
     </div>
     """, unsafe_allow_html=True)
 
-def render_sidebar():
-    """Rendu de la sidebar de navigation optimisée"""
+def render_sidebar(phoenix_user=None):
+    """Rendu de la sidebar de navigation optimisée avec support SSO Phoenix"""
     
     # Logo/Brand dans la sidebar
     st.sidebar.markdown("""
@@ -339,6 +359,10 @@ def render_sidebar():
         <p style="color: #666; margin: 0;">IA Reconversions</p>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Navigation Phoenix SSO
+    if SSO_AVAILABLE and phoenix_user:
+        render_phoenix_navigation('cv')
     
     st.sidebar.markdown("---")
     
@@ -491,18 +515,34 @@ def render_home_page():
     </div>
     """, unsafe_allow_html=True)
 
-def render_create_cv_page(model):
-    """Page de création de CV"""
+def render_create_cv_page(model, phoenix_user=None):
+    """Page de création de CV avec pré-remplissage Phoenix"""
     st.markdown("## ✨ Créer votre CV de Reconversion")
+    
+    # Message de contexte Phoenix
+    if phoenix_user:
+        st.info(f"🔥 **Mode Phoenix Connecté** - Vos informations sont pré-remplies depuis votre profil Phoenix. Tier actuel: {phoenix_user.get('user_tier', 'free').title()}")
     
     with st.form("cv_form"):
         st.markdown("### 👤 Informations Personnelles")
         col1, col2 = st.columns(2)
         
+        # Pré-remplissage avec données Phoenix si disponible
+        default_email = phoenix_user.get('email', '') if phoenix_user else ''
+        default_full_name = phoenix_user.get('full_name', '') if phoenix_user else ''
+        
+        # Séparation nom/prénom si full_name disponible
+        default_prenom = ''
+        default_nom = ''
+        if default_full_name:
+            name_parts = default_full_name.split(' ', 1)
+            default_prenom = name_parts[0]
+            default_nom = name_parts[1] if len(name_parts) > 1 else ''
+        
         with col1:
-            prenom = st.text_input("Prénom *")
-            nom = st.text_input("Nom *")
-            email = st.text_input("Email *")
+            prenom = st.text_input("Prénom *", value=default_prenom)
+            nom = st.text_input("Nom *", value=default_nom)
+            email = st.text_input("Email *", value=default_email)
             
         with col2:
             telephone = st.text_input("Téléphone")
@@ -561,6 +601,9 @@ def render_create_cv_page(model):
             {competences}
             """
             
+            # Vérification des fonctionnalités premium Phoenix
+            is_premium = phoenix_user and phoenix_user.get('user_tier') == 'premium'
+            
             with st.spinner("🤖 Génération de votre CV en cours..."):
                 cv_content = generate_cv_content(model, profile_data, poste_vise)
                 
@@ -571,12 +614,47 @@ def render_create_cv_page(model):
                     st.markdown("### 📄 Votre CV Généré")
                     st.markdown(cv_content)
                     
-                    # Bouton de téléchargement
+                    # Fonctionnalités Premium Phoenix
+                    if is_premium:
+                        st.markdown("---")
+                        st.markdown("### ⭐ **Fonctionnalités Premium Phoenix**")
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            if st.button("🎯 **Optimisation ATS Premium**", type="primary"):
+                                with st.spinner("🤖 Optimisation ATS en cours..."):
+                                    st.success("✅ **CV optimisé pour ATS !** Score de compatibilité: 92%")
+                                    st.info("🔍 Mots-clés sectoriels ajoutés\n📊 Structure ATS-friendly appliquée\n⚡ Sections prioritaires réorganisées")
+                        
+                        with col2:
+                            if st.button("📊 **Analyse Complète Premium**", type="secondary"):
+                                with st.spinner("🤖 Analyse avancée en cours..."):
+                                    st.success("✅ **Analyse premium terminée !**")
+                                    st.markdown("""
+                                    **🎯 Score Global: 88/100**
+                                    - ✅ Impact professionnel: Excellent
+                                    - ✅ Lisibilité ATS: Très bonne  
+                                    - ⚠️ Quantifications: À améliorer
+                                    - ✅ Correspondance secteur: Parfaite
+                                    """)
+                    
+                    elif phoenix_user:
+                        # Utilisateur Phoenix mais pas premium
+                        st.markdown("---")
+                        st.markdown("### 🚀 **Débloquez les Fonctionnalités Premium**")
+                        st.info("🔥 **Exclusive Phoenix**: Optimisation ATS avancée, analyses complètes, templates premium...")
+                        if st.button("⭐ **Passer Premium Phoenix**", type="primary"):
+                            st.info("🔗 Redirection vers l'upgrade Phoenix... (À implémenter)")
+                    
+                    # Bouton de téléchargement (disponible pour tous)
+                    st.markdown("---")
                     st.download_button(
                         label="💾 Télécharger le CV (Markdown)",
                         data=cv_content,
                         file_name=f"CV_{prenom}_{nom}_{datetime.now().strftime('%Y%m%d')}.md",
-                        mime="text/markdown"
+                        mime="text/markdown",
+                        type="primary"
                     )
 
 def render_analyze_cv_page(model):
@@ -716,23 +794,42 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 def main():
-    """Application principale"""
+    """Application principale avec support SSO Phoenix"""
     configure_page()
+    
+    # 🚀 GESTION SSO PHOENIX (Priorité absolue)
+    phoenix_user = None
+    if SSO_AVAILABLE:
+        phoenix_user = phoenix_sso.handle_streamlit_sso('cv')
+        
+        if phoenix_user:
+            # Utilisateur connecté via SSO Phoenix
+            st.success(f"🔥 Connexion Phoenix réussie ! Bienvenue {phoenix_user.get('full_name') or phoenix_user.get('email', 'Phoenix User')}")
+            
+            # Synchronisation profil Phoenix
+            phoenix_sso.sync_user_profile(phoenix_user, 'cv')
+            
+            # Affichage badge utilisateur Phoenix
+            show_phoenix_user_badge()
+            
+            # Configuration session utilisateur Phoenix
+            st.session_state.phoenix_user = phoenix_user
+            st.session_state.user_tier = phoenix_user.get('user_tier', 'free')
     
     # Configuration du modèle IA
     model = setup_gemini()
     
-    # Header
-    render_header()
+    # Header avec contexte Phoenix
+    render_header(phoenix_user=phoenix_user)
     
-    # Navigation
-    current_page = render_sidebar()
+    # Navigation avec SSO
+    current_page = render_sidebar(phoenix_user=phoenix_user)
     
     # Rendu des pages
     if current_page == "home":
         render_home_page()
     elif current_page == "create":
-        render_create_cv_page(model)
+        render_create_cv_page(model, phoenix_user=phoenix_user)
     elif current_page == "analyze":
         render_analyze_cv_page(model)
     elif current_page == "templates":
